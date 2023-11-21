@@ -9,8 +9,6 @@ from rest_framework import status
 class ShortnerViewSet(viewsets.ModelViewSet):
     queryset = Shortener.objects.all()
     serializer_class = ShortnerSerializer
-    # TODO: por usuario?
-    # permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -20,8 +18,12 @@ class ShortnerViewSet(viewsets.ModelViewSet):
     @action(detail=False, url_path=r"(?P<slang>\w+)")
     def unshort(self, request, slang=None):
         try:
-            url_qs = self.queryset.get(slang=slang)
+            url_data = self.queryset.get(slang=slang)
         except:
             return Response("not found", status=status.HTTP_404_NOT_FOUND)
-        serializer = self.get_serializer(url_qs)
+
+        url_data.access_counter += 1
+        url_data.save()
+
+        serializer = self.get_serializer(url_data)
         return Response(serializer.data)
